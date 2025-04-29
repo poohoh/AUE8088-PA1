@@ -23,12 +23,22 @@ class MyNetwork(AlexNet):
         super().__init__()
 
         # [TODO] Modify feature extractor part in AlexNet
-
+        self.conv1 = nn.Conv2d(256, 256, kernel_size=1, stride=1)
+        self.act1 = nn.LeakyReLU(inplace=True)
+        self.conv2 = nn.Conv2d(256, 256, kernel_size=1, stride=1)
+        self.act2 = nn.LeakyReLU(inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # [TODO: Optional] Modify this as well if you want
         x = self.features(x)
         x = self.avgpool(x)
+
+        # modified
+        x = self.conv1(x)
+        x = self.act1(x)
+        x = self.conv2(x)
+        x = self.act2(x)
+
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x
