@@ -17,6 +17,7 @@ from src.metric import MyF1Score
 import src.config as cfg
 from src.util import show_setting
 from einops import rearrange
+import math
 
 
 # [TODO: Optional] Rewrite this class if you want
@@ -129,20 +130,34 @@ class SimpleClassifier(LightningModule):
         scheduler_type = scheduler_params.pop('type')
         monitor_key = scheduler_params.pop('monitor', None)
         scheduler = getattr(torch.optim.lr_scheduler, scheduler_type)(optimizer, **scheduler_params)
+        
+        # warm up scheduler
+        steps_per_epoch = math.ceil(100000 / cfg.BATCH_SIZE)
+        warmup_epochs = 5
+        warmup_steps = warmup_epochs * steps_per_epoch
 
-        # Reduce LR on plateau
-        scheduler_config = {
+        warmup_scheduler = torch.optim.lr_scheduler.LambdaLR(
+            optimizer,
+            lr_lambda=lambda step: min(1.0, (step + 1) / warmup_steps)
+        )
+
+        main_scheduler_config = {
             'scheduler': scheduler,
             'interval': self.hparams.scheduler_params.get('interval', 'epoch'),
             'frequency': self.hparams.scheduler_params.get('frequency', 1),
-            'strict': self.hparams.scheduler_params.get('strict', True),
-            'name': self.hparams.scheduler_params.get('name', None),
+            'monitor': monitor_key,
+            'name': 'main_lr_scheduler'
         }
 
-        if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-            scheduler_config['monitor'] = monitor_key
+        warmup_scheduler_config = {
+            'scheduler': warmup_scheduler,
+            'interval': 'step',
+            'frequency': 1,
+            'name': 'warmup_lr_scheduler'
+        }
 
-        return {'optimizer': optimizer, 'lr_scheduler': scheduler_config}
+        return [optimizer], [warmup_scheduler_config, main_scheduler_config]
+
 
     def forward(self, x):
         return self.model(x)
