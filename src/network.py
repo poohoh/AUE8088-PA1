@@ -118,7 +118,12 @@ class SimpleClassifier(LightningModule):
     def configure_optimizers(self):
         optim_params = copy.deepcopy(self.hparams.optimizer_params)
         optim_type = optim_params.pop('type')
-        optimizer = getattr(torch.optim, optim_type)(self.parameters(), **optim_params)
+        
+        import inspect
+        sig = inspect.signature(getattr(torch.optim, optim_type))
+        optim_kwargs = {k: v for k, v in optim_params.items() if k in sig.parameters}
+
+        optimizer = getattr(torch.optim, optim_type)(self.parameters(), **optim_kwargs)
 
         scheduler_params = copy.deepcopy(self.hparams.scheduler_params)
         scheduler_type = scheduler_params.pop('type')
