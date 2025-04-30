@@ -78,8 +78,22 @@ class SimpleClassifier(LightningModule):
 
         scheduler_params = copy.deepcopy(self.hparams.scheduler_params)
         scheduler_type = scheduler_params.pop('type')
+        monitor_key = scheduler_params.pop('monitor', None)
         scheduler = getattr(torch.optim.lr_scheduler, scheduler_type)(optimizer, **scheduler_params)
-        return {'optimizer': optimizer, 'lr_scheduler': scheduler}
+
+        # Reduce LR on plateau
+        scheduler_config = {
+            'scheduler': scheduler,
+            'interval': self.hparams.scheduler_params.get('interval', 'epoch'),
+            'frequency': self.hparams.scheduler_params.get('frequency', 1),
+            'strict': self.hparams.scheduler_params.get('strict', True),
+            'name': self.hparams.scheduler_params.get('name', None),
+        }
+
+        if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+            scheduler_config['monitor'] = monitor_key
+
+        return {'optimizer': optimizer, 'lr_scheduler': scheduler_config}
 
     def forward(self, x):
         return self.model(x)
