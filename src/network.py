@@ -132,7 +132,7 @@ class SimpleClassifier(LightningModule):
         scheduler = getattr(torch.optim.lr_scheduler, scheduler_type)(optimizer, **scheduler_params)
         
         # warm up scheduler
-        steps_per_epoch = math.ceil(100000 / cfg.BATCH_SIZE)
+        steps_per_epoch = math.ceil(100000 / (cfg.BATCH_SIZE * cfg.NUM_GPUS))
         warmup_epochs = 5
         warmup_steps = warmup_epochs * steps_per_epoch
 
