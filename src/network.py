@@ -20,12 +20,46 @@ from src.util import show_setting
 
 # [TODO: Optional] Rewrite this class if you want
 class MyNetwork(AlexNet):
-    def __init__(self, num_classes: int = 200):
+    def __init__(self, num_classes: int = 200, dropout: float = 0.5):
         super().__init__(num_classes=num_classes)
 
         # [TODO] Modify feature extractor part in AlexNet
-        # self.conv1 = nn.Conv2d(256, 256, kernel_size=1, stride=1)
-        # self.act1 = nn.LeakyReLU(inplace=True)
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1),  # 32 x 32
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # 16 x 16
+
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),  # 16 x 16
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2),  # 8 x 8
+
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),  # 8 x 8
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 8 x 8
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 8 x 8
+            nn.ReLU(inplace=True),
+        )
+
+        # attention
+        feature_dim = 256
+        feature_map_size = 8 * 8
+        num_heads = 8
+        transformer_ff_dim = feature_dim * 4
+        transformer_dropout = 0.1
+
+        self.positional_encoding = nn.Parameter(torch.randn(1, feature_map_size, feature_dim))
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=feature_dim,
+            nhead=num_heads,
+            dim_feedforward=transformer_ff_dim,
+            dropout=transformer_dropout,
+            activation='gelu',
+            batch_first=True
+        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # [TODO: Optional] Modify this as well if you want
