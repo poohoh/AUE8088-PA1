@@ -16,6 +16,7 @@ from src.metric import MyAccuracy
 from src.metric import MyF1Score
 import src.config as cfg
 from src.util import show_setting
+from einops import rearrange
 
 
 # [TODO: Optional] Rewrite this class if you want
@@ -31,7 +32,7 @@ class MyNetwork(AlexNet):
 
             nn.Conv2d(64, 128, kernel_size=3, padding=1),  # 16 x 16
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2),  # 8 x 8
+            nn.MaxPool2d(kernel_size=2, stride=2),  # 8 x 8
 
             nn.Conv2d(128, 256, kernel_size=3, padding=1),  # 8 x 8
             nn.ReLU(inplace=True),
@@ -43,36 +44,44 @@ class MyNetwork(AlexNet):
             nn.ReLU(inplace=True),
         )
 
-        # # attention
-        # feature_dim = 256
-        # feature_map_size = 8 * 8
-        # num_heads = 8
-        # transformer_ff_dim = feature_dim * 4
-        # transformer_dropout = 0.1
+        # attention
+        feature_dim = 256
+        feature_map_size = 8 * 8
+        num_heads = 8
+        transformer_ff_dim = feature_dim * 4
+        transformer_dropout = 0.1
 
-        # self.positional_encoding = nn.Parameter(torch.randn(1, feature_map_size, feature_dim))
-        # encoder_layer = nn.TransformerEncoderLayer(
-        #     d_model=feature_dim,
-        #     nhead=num_heads,
-        #     dim_feedforward=transformer_ff_dim,
-        #     dropout=transformer_dropout,
-        #     activation='gelu',
-        #     batch_first=True
-        # )
-        # self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
+        self.positional_encoding = nn.Parameter(torch.zeros(1, feature_map_size, feature_dim))
+        nn.init.trunc_normal_(self.positional_encoding, std=0.02)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=feature_dim,
+            nhead=num_heads,
+            dim_feedforward=transformer_ff_dim,
+            dropout=transformer_dropout,
+            activation='gelu',
+            batch_first=True
+        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
+
+        self.pre_ln = nn.LayerNorm(feature_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # [TODO: Optional] Modify this as well if you want
         x = self.features(x)
-        # x = self.transformer_encoder()
-        x = self.avgpool(x)
 
-        # # modified
-        # x = self.conv1(x)
-        # x = self.act1(x)
+        # spatial attention
+        B, C, H, W = x.shape
+        x = rearrange(x, 'b c h w -> b (h w) c')
+        x = self.pre_ln(x)
+        x = x + self.positional_encoding
+        x = self.transformer_encoder(x)
+        x = rearrange(x, 'b (h w) c -> b c h w', h=H, w=W)
+        
+        x = self.avgpool(x)
 
         x = torch.flatten(x, 1)
         x = self.classifier(x)
+
         return x
 
 
