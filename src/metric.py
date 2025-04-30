@@ -30,7 +30,7 @@ class MyF1Score(Metric):
         recall = self.tps / (self.tps + self.fns + self.eps)  # TP / (TP + FN)
         f1 = 2 * (precision * recall) / (precision + recall + self.eps)  # B x 1
 
-        return f1
+        return f1.mean().item()  # average f1 score
 
 class MyAccuracy(Metric):
     def __init__(self):

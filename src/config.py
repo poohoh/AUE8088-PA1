@@ -6,7 +6,8 @@ BATCH_SIZE          = 512
 VAL_EVERY_N_EPOCH   = 1
 
 NUM_EPOCHS          = 50
-OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.005, 'momentum': 0.9}
+# OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.005, 'momentum': 0.9}
+OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.01, 'momentum': 0.9}
 SCHEDULER_PARAMS    = {'type': 'MultiStepLR', 'milestones': [30, 35], 'gamma': 0.2}
 
 # Dataaset
@@ -24,6 +25,8 @@ IMAGE_STD           = [0.2302, 0.2265, 0.2262]
 # Network
 # MODEL_NAME          = 'resnet18'
 MODEL_NAME          = 'MyNetwork'
+# MODEL_NAME          = 'alexnet'
+# MODEL_NAME          = 'vgg16'
 
 # Compute related
 ACCELERATOR         = 'gpu'
