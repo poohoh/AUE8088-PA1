@@ -43,27 +43,28 @@ class MyNetwork(AlexNet):
             nn.ReLU(inplace=True),
         )
 
-        # attention
-        feature_dim = 256
-        feature_map_size = 8 * 8
-        num_heads = 8
-        transformer_ff_dim = feature_dim * 4
-        transformer_dropout = 0.1
+        # # attention
+        # feature_dim = 256
+        # feature_map_size = 8 * 8
+        # num_heads = 8
+        # transformer_ff_dim = feature_dim * 4
+        # transformer_dropout = 0.1
 
-        self.positional_encoding = nn.Parameter(torch.randn(1, feature_map_size, feature_dim))
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=feature_dim,
-            nhead=num_heads,
-            dim_feedforward=transformer_ff_dim,
-            dropout=transformer_dropout,
-            activation='gelu',
-            batch_first=True
-        )
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
+        # self.positional_encoding = nn.Parameter(torch.randn(1, feature_map_size, feature_dim))
+        # encoder_layer = nn.TransformerEncoderLayer(
+        #     d_model=feature_dim,
+        #     nhead=num_heads,
+        #     dim_feedforward=transformer_ff_dim,
+        #     dropout=transformer_dropout,
+        #     activation='gelu',
+        #     batch_first=True
+        # )
+        # self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # [TODO: Optional] Modify this as well if you want
         x = self.features(x)
+        # x = self.transformer_encoder()
         x = self.avgpool(x)
 
         # # modified
