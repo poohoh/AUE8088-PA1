@@ -21,68 +21,82 @@ import math
 
 
 # [TODO: Optional] Rewrite this class if you want
+# class MyNetwork(AlexNet):
+#     def __init__(self, num_classes: int = 200, dropout: float = 0.5):
+#         super().__init__(num_classes=num_classes)
+
+#         # [TODO] Modify feature extractor part in AlexNet
+#         self.features = nn.Sequential(
+#             nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1),  # 32 x 32
+#             nn.ReLU(inplace=True),
+#             nn.MaxPool2d(kernel_size=2, stride=2),  # 16 x 16
+
+#             nn.Conv2d(64, 128, kernel_size=3, padding=1),  # 16 x 16
+#             nn.ReLU(inplace=True),
+#             nn.MaxPool2d(kernel_size=2, stride=2),  # 8 x 8
+
+#             nn.Conv2d(128, 256, kernel_size=3, padding=1),  # 8 x 8
+#             nn.ReLU(inplace=True),
+
+#             nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 8 x 8
+#             nn.ReLU(inplace=True),
+
+#             nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 8 x 8
+#             nn.ReLU(inplace=True),
+#         )
+
+#         # attention
+#         feature_dim = 256
+#         feature_map_size = 8 * 8
+#         num_heads = 8
+#         transformer_ff_dim = feature_dim * 4
+#         transformer_dropout = 0.1
+
+#         self.positional_encoding = nn.Parameter(torch.zeros(1, feature_map_size, feature_dim))
+#         nn.init.trunc_normal_(self.positional_encoding, std=0.02)
+#         encoder_layer = nn.TransformerEncoderLayer(
+#             d_model=feature_dim,
+#             nhead=num_heads,
+#             dim_feedforward=transformer_ff_dim,
+#             dropout=transformer_dropout,
+#             activation='gelu',
+#             batch_first=True
+#         )
+#         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
+
+#         self.pre_ln = nn.LayerNorm(feature_dim)
+
+#     def forward(self, x: torch.Tensor) -> torch.Tensor:
+#         # [TODO: Optional] Modify this as well if you want
+#         x = self.features(x)
+
+#         # spatial attention
+#         B, C, H, W = x.shape
+#         x = rearrange(x, 'b c h w -> b (h w) c')
+#         x = self.pre_ln(x)
+#         x = x + self.positional_encoding
+#         x = self.transformer_encoder(x)
+#         x = rearrange(x, 'b (h w) c -> b c h w', h=H, w=W)
+        
+#         x = self.avgpool(x)
+
+#         x = torch.flatten(x, 1)
+#         x = self.classifier(x)
+
+#         return x
+
 class MyNetwork(AlexNet):
-    def __init__(self, num_classes: int = 200, dropout: float = 0.5):
+    def __init__(self, num_classes: int = 200):
         super().__init__(num_classes=num_classes)
 
         # [TODO] Modify feature extractor part in AlexNet
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1),  # 32 x 32
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 16 x 16
-
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),  # 16 x 16
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 8 x 8
-
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),  # 8 x 8
-            nn.ReLU(inplace=True),
-
-            nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 8 x 8
-            nn.ReLU(inplace=True),
-
-            nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 8 x 8
-            nn.ReLU(inplace=True),
-        )
-
-        # attention
-        feature_dim = 256
-        feature_map_size = 8 * 8
-        num_heads = 8
-        transformer_ff_dim = feature_dim * 4
-        transformer_dropout = 0.1
-
-        self.positional_encoding = nn.Parameter(torch.zeros(1, feature_map_size, feature_dim))
-        nn.init.trunc_normal_(self.positional_encoding, std=0.02)
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=feature_dim,
-            nhead=num_heads,
-            dim_feedforward=transformer_ff_dim,
-            dropout=transformer_dropout,
-            activation='gelu',
-            batch_first=True
-        )
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
-
-        self.pre_ln = nn.LayerNorm(feature_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # [TODO: Optional] Modify this as well if you want
         x = self.features(x)
-
-        # spatial attention
-        B, C, H, W = x.shape
-        x = rearrange(x, 'b c h w -> b (h w) c')
-        x = self.pre_ln(x)
-        x = x + self.positional_encoding
-        x = self.transformer_encoder(x)
-        x = rearrange(x, 'b (h w) c -> b c h w', h=H, w=W)
-        
         x = self.avgpool(x)
-
         x = torch.flatten(x, 1)
         x = self.classifier(x)
-
         return x
 
 
@@ -117,46 +131,46 @@ class SimpleClassifier(LightningModule):
         show_setting(cfg)
 
     def configure_optimizers(self):
-        optim_params = copy.deepcopy(self.hparams.optimizer_params)
-        optim_type = optim_params.pop('type')
-        
-        import inspect
-        sig = inspect.signature(getattr(torch.optim, optim_type))
-        optim_kwargs = {k: v for k, v in optim_params.items() if k in sig.parameters}
-
-        optimizer = getattr(torch.optim, optim_type)(self.parameters(), **optim_kwargs)
-
-        scheduler_params = copy.deepcopy(self.hparams.scheduler_params)
-        scheduler_type = scheduler_params.pop('type')
-        monitor_key = scheduler_params.pop('monitor', None)
-        scheduler = getattr(torch.optim.lr_scheduler, scheduler_type)(optimizer, **scheduler_params)
-        
-        # warm up scheduler
-        steps_per_epoch = math.ceil(100000 / (cfg.BATCH_SIZE * cfg.NUM_GPUS))
-        warmup_epochs = 5
-        warmup_steps = warmup_epochs * steps_per_epoch
-
-        warmup_scheduler = torch.optim.lr_scheduler.LambdaLR(
-            optimizer,
-            lr_lambda=lambda step: min(1.0, (step + 1) / warmup_steps)
+        # Optimizer
+        optim_cfg = copy.deepcopy(self.hparams.optimizer_params)
+        optimizer = getattr(torch.optim, optim_cfg.pop("type"))(
+            self.parameters(), **optim_cfg
         )
 
-        main_scheduler_config = {
-            'scheduler': scheduler,
-            'interval': self.hparams.scheduler_params.get('interval', 'epoch'),
-            'frequency': self.hparams.scheduler_params.get('frequency', 1),
-            'monitor': monitor_key,
-            'name': 'main_lr_scheduler'
-        }
+        # Warm-up
+        steps_per_epoch = math.ceil(100_000 / (cfg.BATCH_SIZE * cfg.NUM_GPUS))
+        warmup_steps = 5 * steps_per_epoch
+        warmup = torch.optim.lr_scheduler.LinearLR(
+            optimizer, start_factor=1e-8, end_factor=1.0, total_iters=warmup_steps
+        )
 
-        warmup_scheduler_config = {
-            'scheduler': warmup_scheduler,
-            'interval': 'step',
-            'frequency': 1,
-            'name': 'warmup_lr_scheduler'
-        }
+        # RLROP
+        pl_cfg = copy.deepcopy(self.hparams.scheduler_params)
+        pl_cfg.pop("type", None)
+        monitor_key = pl_cfg.pop("monitor", "loss/val")
+        plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, **pl_cfg
+        )
 
-        return [optimizer], [warmup_scheduler_config, main_scheduler_config]
+        # Lightning
+        return (
+            [optimizer],
+            [
+                {  # warm-up
+                    "scheduler": warmup,
+                    "interval": "step",
+                    "frequency": 1,
+                    "name": "warmup_lr",
+                },
+                {  # plateau
+                    "scheduler": plateau,
+                    "interval": "epoch",
+                    "monitor": monitor_key,
+                    "reduce_on_plateau": True,
+                    "name": "plateau_lr",
+                },
+            ],
+        )
 
 
     def forward(self, x):

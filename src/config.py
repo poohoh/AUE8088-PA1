@@ -7,11 +7,11 @@ VAL_EVERY_N_EPOCH   = 1
 
 NUM_EPOCHS          = 50
 # OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.005, 'momentum': 0.9}
-OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.1, 'momentum': 0.9}
-# OPTIMIZER_PARAMS    = {'type': 'AdamW', 'lr': 1e-2, 'betas': (0.9, 0.999), 'weight_decay': 0.01}
-# SCHEDULER_PARAMS    = {'type': 'MultiStepLR', 'milestones': [30, 35], 'gamma': 0.2}
+# OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.1, 'momentum': 0.9}
+OPTIMIZER_PARAMS    = {'type': 'AdamW', 'lr': 1e-1, 'betas': (0.9, 0.999), 'weight_decay': 0.01}
+# SCHEDULER_PARAMS    = {'type': 'MultiStepLR', 'milestones': [20, 30], 'gamma': 0.2}
 SCHEDULER_PARAMS    = {'type': 'ReduceLROnPlateau', 'monitor': 'loss/val', 'mode': 'min', 'factor': 0.2,
-                       'patience': 10, 'min_lr': 1e-6, 'verbose': True}
+                       'patience': 5, 'min_lr': 1e-6, 'verbose': True}
 
 # Dataaset
 DATASET_ROOT_PATH   = 'datasets/'
@@ -28,7 +28,7 @@ IMAGE_STD           = [0.2302, 0.2265, 0.2262]
 NUM_GPUS            = 3
 
 # Network
-# MODEL_NAME          = 'MyNetwork'
+MODEL_NAME          = 'MyNetwork'
 # MODEL_NAME          = 'alexnet'
 # MODEL_NAME          = 'resnet18'
 # MODEL_NAME          = 'resnet34'
@@ -38,7 +38,7 @@ NUM_GPUS            = 3
 # MODEL_NAME          = 'convnext_base'
 # MODEL_NAME          = 'convnext_large'
 # MODEL_NAME          = 'convnext_small'
-MODEL_NAME          = 'convnext_tiny'
+# MODEL_NAME          = 'convnext_tiny'
 # MODEL_NAME          = 'deeplabv3_mobilenet_v3_large'
 # MODEL_NAME          = 'deeplabv3_resnet101'
 # MODEL_NAME          = 'deeplabv3_resnet50'
