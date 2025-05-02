@@ -8,10 +8,10 @@ VAL_EVERY_N_EPOCH   = 1
 NUM_EPOCHS          = 50
 # OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.005, 'momentum': 0.9}
 # OPTIMIZER_PARAMS    = {'type': 'SGD', 'lr': 0.1, 'momentum': 0.9}
-OPTIMIZER_PARAMS    = {'type': 'AdamW', 'lr': 1e-1, 'betas': (0.9, 0.999), 'weight_decay': 0.01}
+OPTIMIZER_PARAMS    = {'type': 'AdamW', 'lr': 1e-3, 'betas': (0.9, 0.999), 'weight_decay': 0.01}
 # SCHEDULER_PARAMS    = {'type': 'MultiStepLR', 'milestones': [20, 30], 'gamma': 0.2}
 SCHEDULER_PARAMS    = {'type': 'ReduceLROnPlateau', 'monitor': 'loss/val', 'mode': 'min', 'factor': 0.2,
-                       'patience': 5, 'min_lr': 1e-6, 'verbose': True}
+                       'patience': 10, 'min_lr': 1e-6, 'verbose': True}
 
 # Dataaset
 DATASET_ROOT_PATH   = 'datasets/'
